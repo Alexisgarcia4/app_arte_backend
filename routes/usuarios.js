@@ -9,6 +9,9 @@ router.post('/crear', upload.single('imagen_perfil'), usuarioController.crearUsu
 // Ruta para iniciar sesión
 router.post('/login', usuarioController.loginUsuario);
 
+// Obtener usuario especifico
+router.get('/:id', checkAuth, usuarioController.obtenerUsuarioPorId);
+
 // Obtener todos los usuarios con opción de filtrar por rol
 router.get('/', usuarioController.obtenerUsuarios);
 

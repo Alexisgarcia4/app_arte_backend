@@ -127,6 +127,40 @@ const loginUsuario = async (req, res) => {
   }
 };
 //------------------------------------------------------------------------------------------------------
+
+const obtenerUsuarioPorId = async (req, res) => {
+  const { id } = req.params; // ID del usuario que se quiere obtener
+  const userId = req.userData.userId; // ID del usuario autenticado
+  const admin = await Usuario.findByPk(userId);
+  const userRole = admin.rol;
+
+  try {
+    // Verificar que el usuario autenticado es el propietario o administrador
+    if (userId !== parseInt(id) && userRole !== 'administrador') {
+      return res.status(403).json({ message: 'No tienes permiso para ver los datos de este usuario.' });
+    }
+
+    // Buscar al usuario en la base de datos por su ID
+    const usuario = await Usuario.findByPk(id, {
+      attributes: {
+        exclude: ['password'], // Excluir el campo de la contraseña
+      },
+    });
+
+    // Verificar si el usuario existe
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    // Enviar los datos del usuario
+    res.status(200).json({ usuario });
+  } catch (error) {
+    console.error('Error al obtener los datos del usuario:', error);
+    res.status(500).json({ message: 'Hubo un error al obtener los datos del usuario.' });
+  }
+};
+
+//------------------------------------------------------------------------------------------------------
 const obtenerUsuarios = async (req, res) => {
   try {
     // Obtener el filtro de rol desde los parámetros de la solicitud
@@ -402,7 +436,7 @@ const actualizarActivoF = async (req, res) => {
 
   const admin = await Usuario.findByPk(userId);
   const userRole = admin.rol;
-  console.log(userRole);
+  
   try {
     // Verificar que el usuario autenticado es el propietario o administrador
     if (userId !== parseInt(id) && userRole !== "administrador") {
@@ -487,4 +521,5 @@ module.exports = {
   eliminarImagen,
   actualizarActivoF,
   actualizarActivoT,
+  obtenerUsuarioPorId,
 };
