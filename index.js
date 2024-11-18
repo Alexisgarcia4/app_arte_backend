@@ -26,17 +26,22 @@ const usuarioRoutes = require('./routes/usuarios'); // Importar rutas de usuario
 
 app.use('/api/usuarios', usuarioRoutes); // Registrar rutas bajo el prefijo /api/usuarios
 
+const obrasRoutes = require('./routes/obras'); // Importar rutas de usuario
+
+app.use('/api/obras', obrasRoutes); // Registrar rutas bajo el prefijo /api/usuarios
+
 
 // Configurar relaciones entre modelos
 setupAssociations();
 
-// Sincronizar modelos con la base de datos
+
+
 (async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Conexión con la base de datos establecida con éxito.');
 
-    await sequelize.sync({ alter: true }); // Sincronizar modelos y relaciones
+    await sequelize.sync(); // Evitar alteraciones automáticas en producción
     console.log('✅ Modelos y relaciones sincronizados con la base de datos.');
   } catch (error) {
     console.error('❌ Error al sincronizar modelos:', error.message);

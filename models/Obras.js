@@ -38,8 +38,15 @@ const Obras = sequelize.define('Obras', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+}, {
+  tableName: 'Obras',
+  indexes: [
+    {
+      unique: true, // Define un índice único compuesto
+      fields: ['titulo', 'id_autor'], // Asegura que el título sea único para cada autor
+    },
+  ],
 });
-
 
 
 module.exports = Obras;

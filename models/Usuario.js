@@ -51,6 +51,10 @@ const Usuario = sequelize.define('Usuario', {
   imagen_perfil: {
     type: DataTypes.STRING(255),
   },
+  descripcion: {
+    type: DataTypes.STRING(500), // String más largo con un límite de 500 caracteres
+    allowNull: true, // Permite valores nulos para usuarios y administradores
+  },
 });
 
 module.exports = Usuario;

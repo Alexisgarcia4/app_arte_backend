@@ -128,6 +128,31 @@ const loginUsuario = async (req, res) => {
 };
 //------------------------------------------------------------------------------------------------------
 
+const obtenerArtistaPorId = async (req, res) => {
+  const { id } = req.params; // ID del usuario que se quiere obtener
+
+  try {
+    // Buscar al usuario con rol artista
+    const artista = await Usuario.findOne({
+      where: { id_usuario: id, rol: 'artista' },
+      attributes: ['id_usuario', 'nombre', 'nick', 'imagen_perfil', 'email','descripcion'], // Campos públicos
+    });
+
+    // Verificar si el artista existe
+    if (!artista) {
+      return res.status(404).json({ message: 'Artista no encontrado.' });
+    }
+
+    // Enviar los datos del artista
+    res.status(200).json({ artista });
+  } catch (error) {
+    console.error('Error al obtener los datos del artista:', error);
+    res.status(500).json({ message: 'Hubo un error al obtener los datos del artista.' });
+  }
+};
+
+
+//------------------------------------------------------------------------------------------------------
 const obtenerUsuarioPorId = async (req, res) => {
   const { id } = req.params; // ID del usuario que se quiere obtener
   const userId = req.userData.userId; // ID del usuario autenticado
@@ -163,18 +188,37 @@ const obtenerUsuarioPorId = async (req, res) => {
 //------------------------------------------------------------------------------------------------------
 const obtenerUsuarios = async (req, res) => {
   try {
-    // Obtener el filtro de rol desde los parámetros de la solicitud
-    const { rol } = req.query;
+    // Obtener los filtros desde los parámetros de la solicitud
+    const { rol, activo, nombre, nick, dni } = req.query;
 
     // Crear el filtro dinámico para la consulta
     const filtro = {};
+
     if (rol) {
       filtro.rol = rol; // Filtrar por rol si está presente
     }
 
+    if (activo === "true") {
+      filtro.activo = true; // Filtrar usuarios activos
+    } else if (activo === "false") {
+      filtro.activo = false; // Filtrar usuarios inactivos
+    }
+
+    if (nombre) {
+      filtro.nombre = { [Op.like]: `${nombre}%` }; // Buscar que empiece con el valor proporcionado
+    }
+
+    if (nick) {
+      filtro.nick = { [Op.like]: `${nick}%` }; // Buscar que empiece con el valor proporcionado
+    }
+
+    if (dni) {
+      filtro.dni = { [Op.like]: `${dni}%` }; // Buscar que empiece con el valor proporcionado
+    }
+
     // Consultar la base de datos con el filtro
     const usuarios = await Usuario.findAll({
-      where: filtro, // Aplicar filtro dinámico
+      where: filtro, // Aplicar filtros dinámicos
       attributes: { exclude: ["password"] }, // Excluir el campo 'password'
     });
 
@@ -522,4 +566,5 @@ module.exports = {
   actualizarActivoF,
   actualizarActivoT,
   obtenerUsuarioPorId,
+  obtenerArtistaPorId,
 };

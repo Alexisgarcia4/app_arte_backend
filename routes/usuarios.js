@@ -9,6 +9,9 @@ router.post('/crear', upload.single('imagen_perfil'), usuarioController.crearUsu
 // Ruta para iniciar sesión
 router.post('/login', usuarioController.loginUsuario);
 
+// Obtener artista especifico sin restricciones
+router.get('/artista/:id', usuarioController.obtenerArtistaPorId);
+
 // Obtener usuario especifico
 router.get('/:id', checkAuth, usuarioController.obtenerUsuarioPorId);
 
