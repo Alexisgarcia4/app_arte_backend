@@ -9,7 +9,6 @@ const cloudinary = require("../config/cloudinary"); // Configuración de Cloudin
 
 //------------------------------------------------------------------------------------------------
 
-// Controlador para crear un nuevo usuario
 const crearUsuario = async (req, res) => {
   try {
     const {
@@ -22,30 +21,53 @@ const crearUsuario = async (req, res) => {
       telefono,
       direccion,
       rol,
+      descripcion,
     } = req.body;
-
+    console.log(req.body);
     // Validación básica
     if (!dni || !nombre || !nick || !email || !password) {
-      return res
-        .status(400)
-        .json({
-          message: "Por favor, completa todos los campos obligatorios.",
-        });
+      return res.status(400).json({
+        message: "Por favor, completa todos los campos obligatorios.",
+      });
     }
 
     // Verificar si el usuario ya existe por email o nick
     const usuarioExistente = await Usuario.findOne({ where: { email } });
     if (usuarioExistente) {
-      return res
-        .status(400)
-        .json({ message: "Ya existe un usuario registrado con este email." });
+      return res.status(400).json({
+        message: "Ya existe un usuario registrado con este email.",
+      });
+    }
+
+    // Validación adicional: Si el rol es 'artista', la descripción es obligatoria
+    if (rol === 'artista' && (!descripcion || descripcion.trim().length === 0)) {
+      return res.status(400).json({
+        message: "Los artistas deben proporcionar una descripción.",
+      });
     }
 
     // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Obtener la URL de la imagen desde multer-storage-cloudinary
-    const imagenUrl = req.file ? req.file.path : null;
+    // Subir la imagen a Cloudinary (si existe)
+    let imagenUrl = null;
+
+    if (req.files && req.files.imagen_perfil) {
+      const file = req.files.imagen_perfil;
+
+      try {
+        // Subir la imagen a Cloudinary
+        const resultado = await cloudinary.uploader.upload(file.tempFilePath, {
+          folder: "usuarios",
+        });
+        imagenUrl = resultado.secure_url;
+      } catch (cloudinaryError) {
+        console.error("Error al subir la imagen a Cloudinary:", cloudinaryError);
+        return res.status(500).json({
+          message: "Hubo un error al subir la imagen de perfil.",
+        });
+      }
+    }
 
     // Crear el usuario
     const nuevoUsuario = await Usuario.create({
@@ -58,6 +80,7 @@ const crearUsuario = async (req, res) => {
       telefono,
       direccion,
       rol, // Si no se proporciona, Sequelize usará el valor por defecto
+      descripcion, // Guardar la descripción si existe
       imagen_perfil: imagenUrl, // Guardar la URL de la imagen
     });
 
@@ -69,6 +92,8 @@ const crearUsuario = async (req, res) => {
         nombre: nuevoUsuario.nombre,
         nick: nuevoUsuario.nick,
         email: nuevoUsuario.email,
+        rol: nuevoUsuario.rol,
+        descripcion: nuevoUsuario.descripcion,
         imagen_perfil: nuevoUsuario.imagen_perfil,
       },
     });
@@ -371,7 +396,7 @@ const actualizarImagen = async (req, res) => {
     }
 
     // Verificar que se subió una nueva imagen
-    if (!req.file) {
+    if (!req.files || !req.files.imagen_perfil) {
       return res.status(400).json({ message: "No se recibió ninguna imagen." });
     }
 
@@ -383,31 +408,39 @@ const actualizarImagen = async (req, res) => {
 
     // Eliminar la imagen anterior de Cloudinary si existe
     if (usuario.imagen_perfil) {
-      // Extraer el public_id desde la URL de Cloudinary
-      const urlBase = "https://res.cloudinary.com/dunxdsecw/image/upload/";
-      const publicIdWithExtension = usuario.imagen_perfil.replace(urlBase, ""); // Quita la parte fija
+      try {
+       // Extraer el public_id desde la URL de Cloudinary
+    const urlBase = "https://res.cloudinary.com/dunxdsecw/image/upload/";
+    const publicIdWithExtension = usuario.imagen_perfil.replace(urlBase, ""); // Quita la parte fija
 
-      // Dividir por "/" y obtener el último segmento
-      const parts = publicIdWithExtension.split("/");
-      const lastPart = parts.slice(1).join("/"); // Combina desde "usuarios" en adelante
-      const publicId = lastPart.split(".")[0]; // Elimina la extensión
+    // Dividir por "/" y obtener el último segmento
+    const parts = publicIdWithExtension.split("/");
+    const lastPart = parts.slice(1).join("/"); // Combina desde "usuarios" en adelante
+    const publicId = lastPart.split(".")[0]; // Elimina la extensión
 
-      // Eliminar la imagen en Cloudinary
-      await cloudinary.uploader.destroy(publicId);
+    console.log(publicId); // Salida: "usuarios/g6ugbdwrtoz5eyk11gnv"
+    // Eliminar la imagen en Cloudinary
+    await cloudinary.uploader.destroy(publicId);
+      } catch (cloudinaryError) {
+        console.error("Error al eliminar la imagen de Cloudinary:", cloudinaryError);
+      }
     }
 
-    // Usar la URL generada automáticamente por multer-storage-cloudinary
-    const nuevaImagen = req.file.path; // URL generada automáticamente por CloudinaryStorage
+    // Subir la nueva imagen a Cloudinary
+    const file = req.files.imagen_perfil; // Obtener la imagen del request
+    const resultado = await cloudinary.uploader.upload(file.tempFilePath, {
+      folder: "usuarios",
+    });
 
     // Actualizar la base de datos con la nueva URL de la imagen
     await Usuario.update(
-      { imagen_perfil: nuevaImagen }, // Nuevo URL de la imagen
+      { imagen_perfil: resultado.secure_url }, // Nuevo URL de la imagen
       { where: { id_usuario: id } } // Condición: ID del usuario
     );
 
     res.status(200).json({
       message: "Imagen actualizada correctamente.",
-      imagen_perfil: nuevaImagen,
+      imagen_perfil: resultado.secure_url,
     });
   } catch (error) {
     console.error("Error al actualizar la imagen de perfil:", error);

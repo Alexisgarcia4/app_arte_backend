@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const usuarioController = require('../controllers/usuarioController'); // Importar controlador de usuario
-const upload = require('../middlewares/multer'); // Importar middleware para subir imágenes
+
 const checkAuth =require('../middlewares/check-auth');
+
+
 // Endpoint para crear un nuevo usuario con imagen de perfil
-router.post('/crear', upload.single('imagen_perfil'), usuarioController.crearUsuario);
+router.post('/crear',  usuarioController.crearUsuario);
 
 // Ruta para iniciar sesión
 router.post('/login', usuarioController.loginUsuario);
@@ -25,7 +27,7 @@ router.put('/datos/:id', checkAuth, usuarioController.actualizarDatos);
 router.put('/contrasena/:id', checkAuth, usuarioController.actualizarContraseña);
 
 // Ruta para actualizar imagen de perfil
-router.put('/imagen/:id', checkAuth, upload.single('imagen_perfil'), usuarioController.actualizarImagen);
+router.put('/imagen/:id', checkAuth, usuarioController.actualizarImagen);
 // Ruta para eliminar imagen de perfil
 router.delete('/imagen/:id', checkAuth, usuarioController.eliminarImagen);
 

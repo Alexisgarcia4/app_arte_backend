@@ -3,6 +3,10 @@ const express = require('express');
 const sequelize = require('./config/database'); // Conexión a la base de datos
 const setupAssociations = require('./models/relations'); // Configuración de relaciones
 
+const fileUpload = require("express-fileupload");
+
+
+
 // Importar modelos (sin relaciones, solo definición)
 require('./models/Usuario');
 require('./models/Obras');
@@ -17,6 +21,13 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
+
 // Ruta de ejemplo
 app.get('/', (req, res) => {
   res.send('¡Bienvenido a mi API!');
@@ -30,6 +41,9 @@ const obrasRoutes = require('./routes/obras'); // Importar rutas de usuario
 
 app.use('/api/obras', obrasRoutes); // Registrar rutas bajo el prefijo /api/usuarios
 
+const favoritosRoutes = require('./routes/favoritos');
+
+app.use('/api/favoritos', favoritosRoutes);
 
 // Configurar relaciones entre modelos
 setupAssociations();
