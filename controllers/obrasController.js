@@ -23,6 +23,10 @@ const crearObra = async (req, res) => {
       if (artRol !== 'artista') {
         return res.status(403).json({ message: 'Solo los artistas pueden crear obras.' });
       }
+
+      if (!art.activo){
+        return res.status(403).json({ message: "Artista desactivado." });
+      }
   
       // Verificar que se proporcionó una imagen
     if (!req.files || !req.files.imagen) {
@@ -84,7 +88,7 @@ const crearObra = async (req, res) => {
   const obtenerObras = async (req, res) => {
     try {
       // Obtener los filtros desde los parámetros de consulta
-      const { titulo, precio_min, precio_max, id_autor, page = 1, limit = 10 } = req.query;
+      const { titulo, precio_min, precio_max, id_autor, activo, page = 1, limit = 10 } = req.query;
   
       // Crear el filtro dinámico
       const filtro = {};
@@ -105,6 +109,11 @@ const crearObra = async (req, res) => {
       if (id_autor) {
         filtro.id_autor = id_autor;
       }
+
+      // Filtro por ID del autor
+      if (activo) {
+        filtro.activo = activo;
+      }
   
       // Paginación
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -112,6 +121,10 @@ const crearObra = async (req, res) => {
   
       // Consultar las obras en la base de datos con los filtros y la paginación
       const obras = await Obras.findAll({
+        include: [{
+          model: Usuario,
+          attributes: ['id_usuario', 'nombre', 'nick'],
+        }],
         where: filtro,
         attributes: { exclude: ['createdAt', 'updatedAt'] }, // Excluir campos innecesarios
         offset,
@@ -143,6 +156,10 @@ const crearObra = async (req, res) => {
       try {
         
         const obra = await Obras.findOne({
+          include: [{
+            model: Usuario,
+            attributes: ['id_usuario', 'nombre', 'nick'],
+          }],
           where: { id_obra: id },
           
         });
@@ -170,6 +187,10 @@ const crearObra = async (req, res) => {
         const obra = await Obras.findByPk(id);
         if (!obra) {
           return res.status(404).json({ message: "Obra no encontrada." });
+        }
+
+        if (!obra.activo) {
+          return res.status(404).json({ message: "Obra desactivada." });
         }
     
         // Verificar que el usuario autenticado es el dueño de la obra
@@ -230,6 +251,10 @@ const actualizarImagen = async (req, res) => {
     if (!obra) {
       return res.status(404).json({ message: "Obra no encontrada." });
       
+    }
+
+    if (!obra.activo) {
+      return res.status(404).json({ message: "Obra desactivada." });
     }
 
     // Verificar que el usuario autenticado es el dueño de la obra
@@ -298,6 +323,10 @@ const eliminarImagen = async (req, res) => {
     if (!obra) {
       return res.status(404).json({ message: "Obra no encontrada." });
       
+    }
+
+    if (!obra.activo) {
+      return res.status(404).json({ message: "Obra desactivada." });
     }
 
     // Verificar que el usuario autenticado es el dueño de la obra

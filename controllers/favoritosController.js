@@ -39,30 +39,44 @@ const crearFavorito = async (req, res) => {
   };
   
   //---------------------------------------------------------------------------------------
-  //ver favoritos de un usuario obtenerFavoritos
-  // Obtener favoritos de un usuario
-const obtenerFavoritos = async (req, res) => {
+  const obtenerFavoritos = async (req, res) => {
     try {
       const id_usuario = req.userData.userId; // ID del usuario autenticado
   
-      // Buscar los favoritos del usuario, incluyendo los detalles de las obras
+      // Buscar los favoritos del usuario, incluyendo los detalles de las obras y el autor
       const favoritos = await Favoritos.findAll({
         where: { id_usuario },
         include: [
           {
             model: Obras,
             attributes: ['id_obra', 'titulo', 'descripcion', 'imagen_url', 'precio', 'estado'],
+            include: [
+              {
+                model: Usuario, // Relación directa sin alias
+                attributes: ['id_usuario', 'nombre'], // Datos del autor
+              },
+            ],
           },
         ],
       });
   
-      // Verificar si el usuario tiene favoritos
       if (favoritos.length === 0) {
         return res.status(404).json({ message: 'No tienes obras marcadas como favoritas.' });
       }
   
-      // Responder con los detalles de las obras favoritas
-      const obrasFavoritas = favoritos.map(favorito => favorito.Obra);
+      // Construir el objeto de respuesta con los detalles necesarios
+      const obrasFavoritas = favoritos.map((favorito) => {
+        const obra = favorito.Obra;
+        return {
+          id_obra: obra.id_obra,
+          titulo: obra.titulo,
+          descripcion: obra.descripcion,
+          imagen_url: obra.imagen_url,
+          precio: obra.precio,
+          estado: obra.estado,
+          artista: obra.Usuario ? obra.Usuario.nombre : 'Desconocido', // Datos del autor
+        };
+      });
   
       res.status(200).json({
         message: 'Favoritos obtenidos correctamente.',
@@ -73,6 +87,8 @@ const obtenerFavoritos = async (req, res) => {
       res.status(500).json({ message: 'Hubo un error al obtener los favoritos.' });
     }
   };
+  
+  
 //---------------------------------------------------------------------------------------------
 
 

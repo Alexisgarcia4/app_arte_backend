@@ -45,6 +45,9 @@ const favoritosRoutes = require('./routes/favoritos');
 
 app.use('/api/favoritos', favoritosRoutes);
 
+const pedidosRoutes = require('./routes/pedidos'); 
+app.use('/api/pedidos', pedidosRoutes);
+
 // Configurar relaciones entre modelos
 setupAssociations();
 

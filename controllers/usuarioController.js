@@ -120,6 +120,9 @@ const loginUsuario = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ message: "Usuario no encontrado." });
     }
+    if (!usuario.activo){
+      return res.status(403).json({ message: "Usuario desactivado." });
+    }
 
     // Comparar la contraseña encriptada
     const esPasswordCorrecto = await bcrypt.compare(password, usuario.password);
@@ -160,13 +163,15 @@ const obtenerArtistaPorId = async (req, res) => {
     // Buscar al usuario con rol artista
     const artista = await Usuario.findOne({
       where: { id_usuario: id, rol: 'artista' },
-      attributes: ['id_usuario', 'nombre', 'nick', 'imagen_perfil', 'email','descripcion'], // Campos públicos
+      attributes: ['id_usuario', 'nombre', 'nick', 'imagen_perfil', 'email','descripcion','activo'], // Campos públicos
     });
 
     // Verificar si el artista existe
     if (!artista) {
       return res.status(404).json({ message: 'Artista no encontrado.' });
     }
+   
+
 
     // Enviar los datos del artista
     res.status(200).json({ artista });
@@ -201,6 +206,7 @@ const obtenerUsuarioPorId = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
+    
 
     // Enviar los datos del usuario
     res.status(200).json({ usuario });
@@ -267,6 +273,11 @@ const actualizarDatos = async (req, res) => {
       return res
         .status(403)
         .json({ message: "No tienes permiso para modificar estos datos." });
+    }
+    const usuario= await Usuario.findByPk(id);
+
+    if (!usuario.activo){
+      return res.status(403).json({ message: "Usuario desactivado." });
     }
 
     // Validar si el email ya está en uso
@@ -337,6 +348,9 @@ const actualizarContraseña = async (req, res) => {
         .status(403)
         .json({ message: "No tienes permiso para modificar esta contraseña." });
     }
+    
+
+    
 
     // Verificar que se proporcionaron ambas contraseñas
     if (!contraseña_actual || !nueva_contraseña) {
@@ -352,6 +366,10 @@ const actualizarContraseña = async (req, res) => {
     const usuario = await Usuario.findByPk(id);
     if (!usuario) {
       return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    if (!usuario.activo){
+      return res.status(403).json({ message: "Usuario desactivado." });
     }
 
     // Verificar que la contraseña actual coincida con la almacenada
@@ -394,6 +412,7 @@ const actualizarImagen = async (req, res) => {
         .status(403)
         .json({ message: "No tienes permiso para modificar esta imagen." });
     }
+    
 
     // Verificar que se subió una nueva imagen
     if (!req.files || !req.files.imagen_perfil) {
@@ -404,6 +423,10 @@ const actualizarImagen = async (req, res) => {
     const usuario = await Usuario.findByPk(id);
     if (!usuario) {
       return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    if (!usuario.activo){
+      return res.status(403).json({ message: "Usuario desactivado." });
     }
 
     // Eliminar la imagen anterior de Cloudinary si existe
@@ -467,6 +490,10 @@ const eliminarImagen = async (req, res) => {
 
     if (!usuario) {
       return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    if (!usuario.activo){
+      return res.status(403).json({ message: "Usuario desactivado." });
     }
 
     // Verificar si el usuario tiene una imagen
