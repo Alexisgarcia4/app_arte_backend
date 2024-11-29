@@ -31,13 +31,26 @@ const crearUsuario = async (req, res) => {
       });
     }
 
-    // Verificar si el usuario ya existe por email o nick
-    const usuarioExistente = await Usuario.findOne({ where: { email } });
+     // Verificar si el usuario ya existe por email, nick o dni
+     const usuarioExistente = await Usuario.findOne({
+      where: {
+        [Op.or]: [
+          { email },
+          { nick },
+          { dni },
+        ],
+      },
+    });
+
     if (usuarioExistente) {
-      return res.status(400).json({
-        message: "Ya existe un usuario registrado con este email.",
-      });
+      let mensaje = "Ya existe un usuario registrado con: ";
+      if (usuarioExistente.email === email) mensaje += "este email.";
+      else if (usuarioExistente.nick === nick) mensaje += "este nick.";
+      else if (usuarioExistente.dni === dni) mensaje += "este DNI.";
+      return res.status(400).json({ message: mensaje });
     }
+
+    
 
     // Validación adicional: Si el rol es 'artista', la descripción es obligatoria
     if (rol === 'artista' && (!descripcion || descripcion.trim().length === 0)) {

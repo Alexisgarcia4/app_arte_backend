@@ -5,6 +5,8 @@ const setupAssociations = require('./models/relations'); // Configuración de re
 
 const fileUpload = require("express-fileupload");
 
+const cors = require('cors');
+
 
 
 // Importar modelos (sin relaciones, solo definición)
@@ -27,6 +29,14 @@ app.use(
     tempFileDir: "/tmp/",
   })
 );
+
+// Configuración de CORS
+app.use(cors({
+  origin: 'http://localhost:5173', // Dominio del frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Headers permitidos
+}));
+
 
 // Ruta de ejemplo
 app.get('/', (req, res) => {
