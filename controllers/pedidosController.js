@@ -138,16 +138,19 @@ const obtenerPedidosUsuario = async (req, res) => {
         order: [['fecha_pedido', 'DESC']], // Ordenar los pedidos por fecha descendente
       });
   
-      // Verificar si el usuario tiene pedidos
-      if (pedidos.length === 0) {
-        return res.status(404).json({ message: 'No tienes pedidos registrados.' });
-      }
-  
-      // Responder con los pedidos encontrados
-      res.status(200).json({
-        message: 'Pedidos obtenidos correctamente.',
-        pedidos,
+      // Responder si no hay pedidos
+    if (pedidos.length === 0) {
+      return res.status(200).json({
+        message: 'No hay pedidos registrados.',
+        pedidos: [],
       });
+    }
+
+    // Responder con los pedidos encontrados
+    res.status(200).json({
+      message: 'Pedidos obtenidos correctamente.',
+      pedidos,
+    });
     } catch (error) {
       console.error('Error al obtener los pedidos del usuario:', error);
       res.status(500).json({ message: 'Hubo un error al obtener los pedidos.' });
