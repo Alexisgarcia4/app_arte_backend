@@ -49,7 +49,7 @@ const crearFavorito = async (req, res) => {
         include: [
           {
             model: Obras,
-            attributes: ['id_obra', 'titulo', 'descripcion', 'imagen_url', 'precio', 'estado'],
+            attributes: ['id_obra', 'titulo', 'descripcion', 'imagen_url', 'precio'],
             include: [
               {
                 model: Usuario, // Relación directa sin alias
@@ -73,7 +73,7 @@ const crearFavorito = async (req, res) => {
           descripcion: obra.descripcion,
           imagen_url: obra.imagen_url,
           precio: obra.precio,
-          estado: obra.estado,
+         
           artista: obra.Usuario ? obra.Usuario.nombre : 'Desconocido', // Datos del autor
         };
       });

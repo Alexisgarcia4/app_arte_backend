@@ -1,4 +1,5 @@
 const Usuario = require("../models/Usuario");
+const Obra = require("../models/Obras")
 const bcrypt = require("bcryptjs"); // Para encriptar contraseñas
 
 const jwt = require("jsonwebtoken"); // Para generar el token JWT
@@ -579,6 +580,10 @@ const actualizarActivoF = async (req, res) => {
     await Usuario.update(
       { activo: false }, // Establecer activo en falso
       { where: { id_usuario: id } } // Condición: ID del usuario
+    );
+    await Obra.update(
+      { activo: false }, // Establecer activo en falso
+      { where: { id_autor: id } } // Condición: ID del usuario
     );
 
     res.status(200).json({ message: "La cuenta se desactivó correctamente." });

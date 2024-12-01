@@ -4,6 +4,8 @@ const DetallePedido = require("../models/Detalle_Pedido");
 const Obras = require("../models/Obras");
 const Usuario = require("../models/Usuario");
 
+const { Op } = require("sequelize"); // Para operadores en la consulta
+
 // Crear un pedido
 const crearPedido = async (req, res) => {
   const t = await sequelize.transaction(); // Crear una transacción
@@ -158,7 +160,7 @@ const obtenerPedidosUsuario = async (req, res) => {
   };
 
   //------------------------------------------------------------------------------------------------
-
+/*
   const obtenerPedidos = async (req, res) => {
     try {
       const userId = req.userData.userId; // ID del usuario autenticado
@@ -220,6 +222,81 @@ const obtenerPedidosUsuario = async (req, res) => {
       res.status(500).json({ message: 'Hubo un error al obtener los pedidos.' });
     }
   };
+*/
+
+const obtenerPedidos = async (req, res) => {
+  try {
+    const userId = req.userData.userId; // ID del usuario autenticado
+    const usuario = await Usuario.findByPk(userId);
+
+    // Verificar que el usuario sea administrador
+    if (usuario.rol !== 'administrador') {
+      return res.status(403).json({ message: 'Solo los administradores pueden acceder a esta información.' });
+    }
+
+    // Obtener filtros desde los parámetros de consulta
+    const { estado, dni, page = 1, limit = 10 } = req.query;
+
+    // Crear el filtro dinámico para los pedidos
+    const filtroPedidos = {};
+    if (estado) filtroPedidos.estado = estado; // Filtrar por estado
+
+    // Crear el filtro dinámico para los usuarios
+    const filtroUsuario = {};
+    if (dni) filtroUsuario.dni = { [Op.like]: `${dni}%` }; // Filtrar por los primeros dígitos del DNI
+
+    // Paginación
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const limitParsed = parseInt(limit);
+
+    // Consultar los pedidos con los filtros y la paginación
+    const pedidos = await Pedido.findAll({
+      where: filtroPedidos,
+      include: [
+        {
+          model: Usuario,
+          where: filtroUsuario, // Filtrar por los usuarios que coincidan con el DNI
+          attributes: ['id_usuario', 'nombre', 'email', 'dni'], // Incluir detalles del usuario
+        },
+        {
+          model: DetallePedido,
+          include: [
+            {
+              model: Obras,
+              attributes: ['id_obra', 'titulo', 'descripcion', 'precio', 'imagen_url'], // Incluir detalles de las obras
+            },
+          ],
+        },
+      ],
+      offset,
+      limit: limitParsed,
+      order: [['fecha_pedido', 'DESC']], // Ordenar por fecha (más reciente primero)
+    });
+
+    // Obtener el número total de pedidos para la paginación
+    const total = await Pedido.count({
+      where: filtroPedidos,
+      include: [
+        {
+          model: Usuario,
+          where: filtroUsuario,
+        },
+      ],
+    });
+
+    // Responder con los pedidos y la información de paginación
+    res.status(200).json({
+      message: 'Pedidos obtenidos exitosamente.',
+      pedidos,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limitParsed),
+    });
+  } catch (error) {
+    console.error('Error al obtener pedidos:', error);
+    res.status(500).json({ message: 'Hubo un error al obtener los pedidos.' });
+  }
+};
 
   //--------------------------------------------------------------------------------------------
   const cambiarEstado = async (req, res) => {

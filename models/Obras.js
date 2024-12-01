@@ -26,10 +26,7 @@ const Obras = sequelize.define('Obras', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  estado: {
-    type: DataTypes.ENUM('disponible', 'no disponible'),
-    defaultValue: 'disponible',
-  },
+  
   fecha_creacion: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

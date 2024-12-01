@@ -11,7 +11,7 @@ const cloudinary = require("../config/cloudinary"); // Configuración de Cloudin
 //------------------------------------------------------------------------------------------------
 
 const crearObra = async (req, res) => {
-    const { titulo, descripcion, precio, cantidad, estado } = req.body;
+    const { titulo, descripcion, precio, cantidad } = req.body;
   
     try {
       // Verificar que el usuario autenticado tiene permiso para crear una obra
@@ -68,7 +68,7 @@ const crearObra = async (req, res) => {
         precio,
         cantidad,
         id_autor: req.userData.userId, // Asociar al autor autenticado
-        estado: estado || 'disponible', // Valor por defecto si no se proporciona
+       
       });
   
       // Responder con la obra creada
@@ -180,7 +180,7 @@ const crearObra = async (req, res) => {
 
     const actualizarDatos = async (req, res) => {
       const { id } = req.params; // ID de la obra que se quiere actualizar
-      const { titulo, descripcion, precio, cantidad, estado } = req.body;
+      const { titulo, descripcion, precio, cantidad} = req.body;
     
       try {
         // Verificar que la obra exista
@@ -224,13 +224,11 @@ const crearObra = async (req, res) => {
         if (cantidad && cantidad < 0) {
           return res.status(400).json({ message: "La cantidad no puede ser negativa." });
         }
-        if (estado && !["disponible", "no disponible"].includes(estado)) {
-          return res.status(400).json({ message: "El estado debe ser 'disponible' o 'no disponible'." });
-        }
+        
     
         // Actualizar los datos de la obra
         await Obras.update(
-          { titulo, descripcion, precio, cantidad, estado }, // Campos a actualizar
+          { titulo, descripcion, precio, cantidad }, // Campos a actualizar
           { where: { id_obra: id } } // Condición: ID de la obra
         );
     
