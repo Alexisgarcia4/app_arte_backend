@@ -32,7 +32,7 @@ app.use(
 
 // Configuración de CORS
 app.use(cors({
-  origin: 'http://localhost:5173', // Dominio del frontend
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Dominio del frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
   allowedHeaders: ['Content-Type', 'Authorization'], // Headers permitidos
 }));
