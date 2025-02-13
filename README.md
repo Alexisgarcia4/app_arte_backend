@@ -14,7 +14,7 @@ cd APP_ARTE_BACKEND
 npm install
 cp .env.example .env  # Configurar credenciales
 npm start
-
+```
 ## Variables de Entorno
 ```bash
 DB_NAME=xxx
@@ -25,7 +25,7 @@ JWT_SECRET=xxx
 CLOUDINARY_CLOUD_NAME=xxx
 CLOUDINARY_API_KEY=xxx
 CLOUDINARY_API_SECRET=xxx
-
+```
 ## Endpoints
 
 - Usuarios: Registro, login, perfil
